@@ -50,37 +50,65 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 2000);
     });
 
-    // Efeito de digitação no terminal
-    const terminalLines = document.querySelectorAll('.terminal-line');
-    let currentLine = 0;
-    let currentChar = 0;
-    let typingInterval;
-
-    function typeTerminal() {
-        if (currentLine < terminalLines.length) {
-            const line = terminalLines[currentLine];
-            const text = line.textContent;
-            
-            if (currentChar < text.length) {
-                line.textContent = text.substring(0, currentChar + 1);
-                currentChar++;
-            } else {
-                currentLine++;
-                currentChar = 0;
+    // Efeito de digitação no terminal - CORRIGIDO
+    function initTerminalAnimation() {
+        const terminalLines = [
+            '$ welcome_to_dev_access',
+            '$ system_ready: <span class="success">true</span>',
+            '$ authentication_required',
+            '$ _'
+        ];
+        
+        const terminalContent = document.querySelector('.terminal-content');
+        terminalContent.innerHTML = '';
+        
+        let currentLine = 0;
+        
+        function typeNextLine() {
+            if (currentLine < terminalLines.length) {
+                const lineElement = document.createElement('div');
+                lineElement.className = 'terminal-line';
+                if (currentLine === terminalLines.length - 1) {
+                    lineElement.classList.add('blinking');
+                }
+                terminalContent.appendChild(lineElement);
+                
+                typeText(lineElement, terminalLines[currentLine], () => {
+                    currentLine++;
+                    setTimeout(typeNextLine, 500);
+                });
             }
-        } else {
-            clearInterval(typingInterval);
         }
+        
+        function typeText(element, text, callback) {
+            let index = 0;
+            element.innerHTML = '';
+            
+            function typeChar() {
+                if (index < text.length) {
+                    // Para HTML, precisamos tratar tags especiais
+                    if (text.substring(index).startsWith('<span')) {
+                        const spanEnd = text.indexOf('</span>', index) + 7;
+                        element.innerHTML += text.substring(index, spanEnd);
+                        index = spanEnd;
+                    } else {
+                        element.innerHTML += text.charAt(index);
+                        index++;
+                    }
+                    setTimeout(typeChar, 50);
+                } else {
+                    callback();
+                }
+            }
+            
+            typeChar();
+        }
+        
+        // Iniciar animação após um delay
+        setTimeout(typeNextLine, 1000);
     }
 
-    // Iniciar efeito de digitação após um delay
-    setTimeout(() => {
-        terminalLines.forEach(line => {
-            line.textContent = '';
-            line.style.display = 'block';
-        });
-        typingInterval = setInterval(typeTerminal, 50);
-    }, 1000);
+    initTerminalAnimation();
 
     // Efeito de partículas de código
     function createCodeParticle() {
